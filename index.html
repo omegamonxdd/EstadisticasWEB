@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calculadora Elite | Offline-First Edition</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+    <!-- NAVEGACIÓN -->
+    <nav class="navbar">
+        <div class="navbar-content">
+            <div class="brand">
+                <div class="brand-logo">Σ</div>
+                <div class="brand-text">
+                    <h1>Calculadora</h1>
+                    <span>Elite Suite v6.0</span>
+                </div>
+            </div>
+            <div class="nav-tabs">
+                <button onclick="switchTab('stats')" id="tab-stats" class="tab-btn active-tab">Estadística</button>
+                <button onclick="switchTab('sets')" id="tab-sets" class="tab-btn">Conjuntos</button>
+                <button onclick="switchTab('prob')" id="tab-prob" class="tab-btn">Probabilidad</button>
+                <button onclick="switchTab('combin')" id="tab-combin" class="tab-btn">Combinatoria</button>
+            </div>
+        </div>
+    </nav>
+
+    <main class="container">
+        
+        <!-- PESTAÑA 1: ESTADÍSTICA -->
+        <section id="content-stats" class="fade-in">
+            <div class="section-card">
+                <div class="grid-layout">
+                    <div class="col-span-1">
+                        <div class="input-group">
+                            <label class="label-mini">Motor Aleatorio</label>
+                            <input type="number" id="gen-count" value="100" min="20" max="1000" class="input-number">
+                            <button onclick="generateAndCalculate()" class="btn btn-primary">Procesar Muestra</button>
+                        </div>
+                    </div>
+                    <div class="col-span-2">
+                        <label class="label-mini">Dataset de Entrada (comas o espacios)</label>
+                        <textarea id="data-input" rows="5" class="input-textarea" placeholder="10, 20, 15, 30..."></textarea>
+                        <div style="display: flex; gap: 1rem; margin-top: 1rem;">
+                            <button onclick="calculateStats()" class="btn btn-secondary" style="flex: 1;">Analizar</button>
+                            <button onclick="clearStats()" class="btn btn-light" style="width: auto; padding: 0 2rem;">Limpiar</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="stats-results" class="results-container hidden results-stack">
+                    <div class="param-grid">
+                        <div class="param-group">
+                            <h3 class="param-title"><span style="background-color: var(--primary);"></span> Tendencia Central</h3>
+                            <div class="stat-box-grid">
+                                <div class="stat-box stat-blue">
+                                    <span class="label">Media</span>
+                                    <div id="res-mean" class="value">-</div>
+                                </div>
+                                <div class="stat-box stat-indigo">
+                                    <span class="label">Mediana</span>
+                                    <div id="res-median" class="value">-</div>
+                                </div>
+                                <div class="stat-box stat-amber">
+                                    <span class="label">Moda</span>
+                                    <div id="res-mode" class="value" style="font-size: 1rem;">-</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="param-group">
+                            <h3 class="param-title"><span style="background-color: var(--text-light);"></span> Dispersión</h3>
+                            <div class="stat-box-grid">
+                                <div class="stat-box stat-slate">
+                                    <span class="label">Mín</span>
+                                    <div id="res-min" class="value">-</div>
+                                </div>
+                                <div class="stat-box stat-slate">
+                                    <span class="label">Máx</span>
+                                    <div id="res-max" class="value">-</div>
+                                </div>
+                                <div class="stat-box stat-emerald">
+                                    <span class="label">Rango</span>
+                                    <div id="res-range" class="value">-</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="charts-vertical-stack">
+                        <div class="chart-card chart-full-width"><canvas id="chartHist"></canvas></div>
+                        <div class="chart-card chart-full-width"><canvas id="chartOjiva"></canvas></div>
+                        <div class="chart-card chart-full-width"><canvas id="chartPareto"></canvas></div>
+                    </div>
+
+                    <div class="full-width-section">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                            <h3 class="param-title"><span style="background-color: var(--accent-emerald);"></span> Distribución Agrupada</h3>
+                            <button onclick="downloadTableAsCSV()" class="btn-export">
+                                📊 Descargar Excel/CSV
+                            </button>
+                        </div>
+                        <div class="table-container">
+                            <table style="width: 100%;">
+                                <thead>
+                                    <tr>
+                                        <th>Intervalo</th>
+                                        <th>Marca (xi)</th>
+                                        <th style="color: var(--primary);">fi (Abs.)</th>
+                                        <th>Fi (Acum.)</th>
+                                        <th style="color: var(--accent-emerald);">hi (Rel.)</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="table-stats-body"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- PESTAÑA 2: CONJUNTOS -->
+        <section id="content-sets" class="hidden fade-in">
+            <div class="section-card">
+                <header class="set-header">
+                    <div>
+                        <h2 class="set-title">Logic Sets Engine</h2>
+                        <p class="set-subtitle">Operaciones Booleanas Nativas</p>
+                    </div>
+                    <button onclick="addSetRow()" class="btn btn-primary" style="width: auto; padding: 1rem 2rem;">+ Añadir Conjunto</button>
+                </header>
+
+                <div style="display: flex; flex-direction: column; gap: 3rem;">
+                    <div class="universe-card">
+                        <div class="universe-label-container">
+                            <div class="universe-icon">S</div>
+                            <label class="universe-label">Universo Obligatorio</label>
+                        </div>
+                        <textarea id="set-universe" rows="2" class="universe-input" placeholder="1, 2, 3, 4, 5..."></textarea>
+                    </div>
+
+                    <div id="sets-container" class="sets-list"></div>
+
+                    <div class="expression-box">
+                        <div>
+                            <label class="label-mini">Expresión Lógica</label>
+                            <input type="text" id="set-expression" class="input-text" placeholder="(A U B) - (C n A)">
+                        </div>
+
+                        <div class="keypad">
+                            <button onclick="insertAtCursor(' U ')" class="key-btn" title="Unión">∪</button>
+                            <button onclick="insertAtCursor(' n ')" class="key-btn" title="Intersección">∩</button>
+                            <button onclick="insertAtCursor(' - ')" class="key-btn" title="Diferencia">−</button>
+                            <button onclick="insertAtCursor(' &#916; ')" class="key-btn" title="Dif. Simétrica">Δ</button>
+                            <button onclick="insertAtCursor('&#39;')" class="key-btn" title="Complemento">^c</button>
+                            <button onclick="insertAtCursor('(')" class="key-btn">(</button>
+                            <button onclick="insertAtCursor(')')" class="key-btn">)</button>
+                        </div>
+
+                        <div style="display: flex; gap: 1rem;">
+                            <button onclick="evaluateExpression()" class="btn btn-primary" style="flex: 1; padding: 1.25rem;">Calcular Expresión</button>
+                            <button onclick="clearSets()" class="btn btn-outline" style="width: auto; padding: 0 2rem;">Reset</button>
+                        </div>
+                    </div>
+
+                    <div id="set-result-box" class="result-box hidden fade-in">
+                        <div class="result-header">
+                            <h4 class="result-title">Resultado Final</h4>
+                            <span id="set-result-cardinality" class="cardinality-badge">n(Res) = 0</span>
+                        </div>
+                        <div id="set-result-data" class="result-data"></div>
+                    </div>
+
+                    <div id="set-error-box" class="error-box hidden">
+                        <span id="set-error-text"></span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- PESTAÑA 3: PROBABILIDAD -->
+        <section id="content-prob" class="hidden fade-in">
+            <div class="section-card">
+                <header class="prob-header">
+                    <h2 class="set-title">Cálculo de Probabilidad</h2>
+                    <p class="set-subtitle">Modelos: Clásico & Regla Multiplicativa</p>
+                </header>
+
+                <div style="margin-bottom: 2rem; display: flex; justify-content: center;">
+                    <div style="background: var(--bg-input); padding: 0.5rem; border-radius: 1rem; display: flex; gap: 0.5rem;">
+                        <button onclick="toggleProbMode('classic')" id="btn-mode-classic" class="btn btn-primary" style="width: auto; padding: 0.75rem 1.5rem; font-size: 0.75rem;">Clásica</button>
+                        <button onclick="toggleProbMode('multi')" id="btn-mode-multi" class="btn btn-light" style="width: auto; padding: 0.75rem 1.5rem; font-size: 0.75rem;">Multiplicativa</button>
+                    </div>
+                </div>
+
+                <div class="grid-layout" style="grid-template-columns: 1fr; max-width: 900px; margin: 0 auto;">
+                    <!-- MODO CLÁSICO -->
+                    <div id="prob-input-classic" class="input-group prob-input-container">
+                        <div style="text-align: left;">
+                            <label class="label-mini">Casos Favorables (n)</label>
+                            <input type="number" id="prob-n" class="input-number" style="margin-bottom: 0;">
+                        </div>
+                        <div style="text-align: left;">
+                            <label class="label-mini">Casos Totales (N)</label>
+                            <input type="number" id="prob-N" class="input-number" style="margin-bottom: 0;">
+                        </div>
+                        <button onclick="calculateProbability()" class="btn btn-primary" style="padding: 1.25rem;">Calcular P(A)</button>
+                    </div>
+
+                    <!-- MODO MULTIPLICATIVO -->
+                    <div id="prob-input-multi" class="hidden input-group prob-input-container">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                            <label class="label-mini" id="multi-label">Eventos Sucesivos</label>
+                            <div style="background: white; padding: 0.25rem; border-radius: 0.75rem; display: flex; gap: 0.25rem; border: 1px solid var(--border-color);">
+                                <button onclick="toggleMultiSubMode('prob')" id="btn-sub-prob" class="btn btn-primary" style="width: auto; padding: 0.4rem 0.8rem; font-size: 0.65rem; border-radius: 0.5rem;">Probabilidades</button>
+                                <button onclick="toggleMultiSubMode('count')" id="btn-sub-count" class="btn btn-light" style="width: auto; padding: 0.4rem 0.8rem; font-size: 0.65rem; border-radius: 0.5rem;">Conteo / Cantidades</button>
+                            </div>
+                        </div>
+                        <div id="prob-events-container" style="display: flex; flex-direction: column; gap: 1rem; margin-bottom: 1.5rem;">
+                            <!-- Filas de eventos dinámicas -->
+                        </div>
+                        <div style="display: flex; gap: 1rem;">
+                            <button onclick="addProbEventRow()" class="btn btn-outline" style="font-size: 0.7rem;">+ Añadir Elemento</button>
+                            <button onclick="calculateMultiProb()" class="btn btn-primary" style="flex: 1;">Calcular Total</button>
+                        </div>
+                    </div>
+
+                    <div id="prob-results-container" class="hidden" style="margin-top: 2rem;">
+                        <div class="result-box" style="text-align: center;">
+                            <span class="label-mini">Probabilidad Resultante</span>
+                            <div id="res-prob-decimal" class="prob-result-main">0.00</div>
+                            
+                            <div class="prob-result-grid" style="margin-top: 2rem;">
+                                <div class="prob-result-item">
+                                    <span class="label">Fracción</span>
+                                    <div id="res-prob-fraction" class="value">0/0</div>
+                                </div>
+                                <div class="prob-result-item prob-result-emerald">
+                                    <span class="label">Porcentaje</span>
+                                    <div id="res-prob-percent" class="value">0%</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- CANVAS DIAGRAMA DE ÁRBOL -->
+                        <div id="tree-container" class="hidden" style="margin-top: 3rem;">
+                            <h3 class="param-title"><span style="background-color: var(--accent-indigo);"></span> Diagrama de Árbol</h3>
+                            <div class="chart-card" style="height: 500px; margin-top: 1.5rem;">
+                                <canvas id="canvasTree"></canvas>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="prob-error-box" class="error-box hidden" style="margin-top: 1.5rem;">
+                        <span id="prob-error-text"></span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- PESTAÑA 4: COMBINATORIA -->
+        <section id="content-combin" class="hidden fade-in">
+            <div class="section-card" style="border-top: 8px solid var(--accent-purple);">
+                <header class="prob-header" style="border-bottom-color: var(--accent-purple-light);">
+                    <h2 class="set-title" style="color: var(--accent-purple-dark);">Análisis Combinatorio</h2>
+                    <p class="set-subtitle">Permutaciones (Orden importa) & Combinaciones (Sin orden)</p>
+                </header>
+
+                <div class="grid-layout" style="grid-template-columns: 1fr; max-width: 800px; margin: 0 auto;">
+                    <div class="input-group" style="background-color: var(--accent-purple-light); border-color: #ddd6fe;">
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin-bottom: 2rem;">
+                            <div style="text-align: left;">
+                                <label class="label-mini" style="color: var(--accent-purple-dark);">Población (n)</label>
+                                <input type="number" id="comb-n" class="input-number" placeholder="Ej: 10" style="border-color: #c4b5fd;">
+                            </div>
+                            <div style="text-align: left;">
+                                <label class="label-mini" style="color: var(--accent-purple-dark);">Muestra (r)</label>
+                                <input type="number" id="comb-r" class="input-number" placeholder="Ej: 3" style="border-color: #c4b5fd;">
+                            </div>
+                        </div>
+                        
+                        <div style="display: flex; gap: 1rem;">
+                            <button onclick="calculateCombinatorics('nCr')" class="btn" style="background-color: var(--accent-purple); color: white; flex: 1;">Calcular Combinación (nCr)</button>
+                            <button onclick="calculateCombinatorics('nPr')" class="btn" style="background-color: var(--accent-purple-dark); color: white; flex: 1;">Calcular Permutación (nPr)</button>
+                        </div>
+                    </div>
+
+                    <div id="comb-results-container" class="hidden results-stack" style="margin-top: 3rem;">
+                        <div class="result-box" style="border-color: var(--accent-purple); text-align: center;">
+                            <span class="label-mini" id="comb-res-label" style="color: var(--accent-purple);">Resultado Final</span>
+                            <div id="res-comb-value" class="prob-result-main" style="color: var(--accent-purple-dark); font-size: 3rem; word-break: break-all;">0</div>
+                        </div>
+
+                        <div class="full-width-section">
+                            <h3 class="param-title"><span style="background-color: var(--accent-purple);"></span> Desglose de Fórmula</h3>
+                            <div id="comb-formula-box" class="input-textarea" style="background-color: #f5f3ff; border-color: #ddd6fe; color: #5b21b6; min-height: 120px; font-family: 'Courier New', monospace; white-space: pre-wrap; font-weight: 600; font-size: 1.1rem; line-height: 1.6;">
+                                <!-- Procedimiento paso a paso -->
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="comb-error-box" class="error-box hidden" style="background-color: #fff1f2; border-color: #fecaca; color: #e11d48;">
+                        <span id="comb-error-text"></span>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <script src="core-engine.js"></script>
+</body>
+</html>
